@@ -70,7 +70,7 @@ Resources:
           AUTH0_DOMAIN: "YOUR_AUTH0_DOMAIN"
           AUTH0_CLIENT_ID: "YOUR_CLIENT_ID"
           AUTH0_CLIENT_SECRET: "YOUR_CLIENT_SECRET"
-          CIBA_BINDING_MESSAGE: "123456"
+          CIBA_BINDING_MESSAGE: "12345"
           CIBA_SCOPE: "openid profile"
       Description: "Lambda function for CIBA authentication flow"
       Tags:
