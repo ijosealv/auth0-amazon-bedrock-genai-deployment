@@ -1,0 +1,17 @@
+{
+  "auth0": {
+    "domain": "YOUR_AUTH0_DOMAIN",
+    "clientId": "YOUR_AUTH0_CLIENT_ID",
+    "clientSecret": "YOUR_AUTH0_CLIENT_SECRET",
+    "connectionName": "YOUR_AUTH0_OPENID_CONNECTION_NAME"
+  },
+  "fga": {
+    "clientId": "YOUR_FGA_CLIENT_ID",
+    "clientSecret": "YOUR_FGA_CLIENT_SECRET",
+    "storeId": "YOUR_FGA_STORE_ID",
+    "modelId": "YOUR_FGA_MODEL_ID"
+  },
+  "okta": {
+    "domain": "https://youroktadomain.com"
+  }
+}
