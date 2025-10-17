@@ -1,0 +1,13 @@
+Flask
+Authlib
+requests
+boto3
+botocore
+six
+Werkzeug
+cryptography>=43.0.1
+serverless-wsgi
+Jinja2
+MarkupSafe
+itsdangerous
+click

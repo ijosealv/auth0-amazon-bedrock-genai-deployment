@@ -1,0 +1,7 @@
+openfga_sdk
+opentelemetry-api
+aiohttp
+build
+packaging
+setuptools
+pyproject_hooks
