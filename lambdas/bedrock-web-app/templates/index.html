@@ -1172,14 +1172,27 @@
 
             const avatar = document.createElement('div');
             avatar.className = `message-avatar ${isUser ? 'user' : 'agent'}`;
-            avatar.innerHTML = isUser ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+            
+            // Create icon element safely instead of using innerHTML
+            const icon = document.createElement('i');
+            icon.className = isUser ? 'fas fa-user' : 'fas fa-robot';
+            avatar.appendChild(icon);
 
             const messageContent = document.createElement('div');
             messageContent.className = 'message-content';
 
             const messageDiv = document.createElement('div');
             messageDiv.className = isUser ? 'user-msg' : 'agent-msg';
-            messageDiv.innerHTML = content;
+            
+            // Prevent XSS by using textContent for user messages
+            // Only allow HTML for agent responses that may contain formatting
+            if (isUser) {
+                messageDiv.textContent = content;
+            } else {
+                // For agent responses, sanitize HTML or use textContent if no HTML needed
+                // TODO: Consider using DOMPurify for HTML sanitization if rich formatting is required
+                messageDiv.textContent = content;
+            }
 
             const timeDiv = document.createElement('div');
             timeDiv.className = 'message-time';
@@ -1380,8 +1393,22 @@
             modal.classList.add('show');
 
             // Reset displays
-            document.getElementById('accessTokenDisplay').innerHTML = '<div class="loading-spinner"></div> Loading token...';
-            document.getElementById('refreshTokenDisplay').innerHTML = '<div class="loading-spinner"></div> Loading token...';
+            const accessDisplay = document.getElementById('accessTokenDisplay');
+            const refreshDisplay = document.getElementById('refreshTokenDisplay');
+            
+            // Create loading content safely
+            accessDisplay.innerHTML = '';
+            refreshDisplay.innerHTML = '';
+            
+            const accessSpinner = document.createElement('div');
+            accessSpinner.className = 'loading-spinner';
+            accessDisplay.appendChild(accessSpinner);
+            accessDisplay.appendChild(document.createTextNode(' Loading token...'));
+            
+            const refreshSpinner = document.createElement('div');
+            refreshSpinner.className = 'loading-spinner';
+            refreshDisplay.appendChild(refreshSpinner);
+            refreshDisplay.appendChild(document.createTextNode(' Loading token...'));
             document.getElementById('sessionIdDisplay').textContent = 'Loading...';
 
             try {
@@ -1417,7 +1444,9 @@
                         const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
                         document.getElementById('tokenExpiry').textContent = `${hours}h ${minutes}m`;
                     } else {
-                        document.getElementById('tokenExpiry').innerHTML = '<span style="color: var(--error);">Expired</span>';
+                        const expiryElement = document.getElementById('tokenExpiry');
+                        expiryElement.textContent = 'Expired';
+                        expiryElement.style.color = 'var(--error)';
                     }
                 } else if (data.expires_in) {
                     const hours = Math.floor(data.expires_in / 3600);
@@ -1427,8 +1456,16 @@
 
             } catch (error) {
                 console.error('Error fetching token info:', error);
-                document.getElementById('accessTokenDisplay').innerHTML = '<span style="color: var(--error);">Error loading token</span>';
-                document.getElementById('refreshTokenDisplay').innerHTML = '<span style="color: var(--error);">Error loading token</span>';
+                
+                const accessDisplay = document.getElementById('accessTokenDisplay');
+                const refreshDisplay = document.getElementById('refreshTokenDisplay');
+                
+                accessDisplay.textContent = 'Error loading token';
+                accessDisplay.style.color = 'var(--error)';
+                
+                refreshDisplay.textContent = 'Error loading token';
+                refreshDisplay.style.color = 'var(--error)';
+                
                 document.getElementById('sessionIdDisplay').textContent = 'Error loading';
             }
         }
@@ -1437,8 +1474,14 @@
             const displayId = type === 'access' ? 'accessTokenDisplay' : 'refreshTokenDisplay';
             const display = document.getElementById(displayId);
 
+            // Clear existing content
+            display.innerHTML = '';
+
             if (!token) {
-                display.innerHTML = '<span style="color: var(--text-muted);">Token not available</span>';
+                const span = document.createElement('span');
+                span.textContent = 'Token not available';
+                span.style.color = 'var(--text-muted)';
+                display.appendChild(span);
                 return;
             }
 
@@ -1449,20 +1492,44 @@
 
             const toggleId = `toggle-${type}-token`;
             
-            display.innerHTML = `
-                <div id="${type}-token-content" style="position: relative; word-break: break-all;">
-                    ${truncated}
-                </div>
-                <div style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-                    <div style="font-size: 11px; color: var(--text-muted);">
-                        <i class="fas fa-info-circle"></i> Token truncated for security (${token.length} characters total)
-                    </div>
-                    <button id="${toggleId}" onclick="toggleTokenVisibility('${type}', '${token.replace(/'/g, "\\'")}', '${truncated.replace(/'/g, "\\'")}', '${toggleId}')" 
-                        style="background: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;">
-                        <i class="fas fa-eye"></i> Show Full Token
-                    </button>
-                </div>
-            `;
+            // Create token content div
+            const tokenContentDiv = document.createElement('div');
+            tokenContentDiv.id = `${type}-token-content`;
+            tokenContentDiv.style.cssText = 'position: relative; word-break: break-all;';
+            tokenContentDiv.textContent = truncated;
+            
+            // Create controls container
+            const controlsDiv = document.createElement('div');
+            controlsDiv.style.cssText = 'margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;';
+            
+            // Create info div
+            const infoDiv = document.createElement('div');
+            infoDiv.style.cssText = 'font-size: 11px; color: var(--text-muted);';
+            
+            const infoIcon = document.createElement('i');
+            infoIcon.className = 'fas fa-info-circle';
+            infoDiv.appendChild(infoIcon);
+            infoDiv.appendChild(document.createTextNode(` Token truncated for security (${token.length} characters total)`));
+            
+            // Create toggle button
+            const toggleButton = document.createElement('button');
+            toggleButton.id = toggleId;
+            toggleButton.style.cssText = 'background: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; white-space: nowrap; transition: all 0.2s ease;';
+            
+            const eyeIcon = document.createElement('i');
+            eyeIcon.className = 'fas fa-eye';
+            toggleButton.appendChild(eyeIcon);
+            toggleButton.appendChild(document.createTextNode(' Show Full Token'));
+            
+            // Add click handler safely
+            toggleButton.onclick = () => toggleTokenVisibility(type, token, truncated, toggleId);
+            
+            // Assemble the display
+            controlsDiv.appendChild(infoDiv);
+            controlsDiv.appendChild(toggleButton);
+            
+            display.appendChild(tokenContentDiv);
+            display.appendChild(controlsDiv);
         }
 
         function toggleTokenVisibility(type, fullToken, truncatedToken, buttonId) {
@@ -1472,12 +1539,24 @@
             if (contentDiv.textContent.trim() === truncatedToken.trim()) {
                 // Show full token
                 contentDiv.textContent = fullToken;
-                button.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Full Token';
+                
+                // Update button safely
+                button.innerHTML = '';
+                const hideIcon = document.createElement('i');
+                hideIcon.className = 'fas fa-eye-slash';
+                button.appendChild(hideIcon);
+                button.appendChild(document.createTextNode(' Hide Full Token'));
                 button.style.background = 'var(--warning)';
             } else {
                 // Hide full token
                 contentDiv.textContent = truncatedToken;
-                button.innerHTML = '<i class="fas fa-eye"></i> Show Full Token';
+                
+                // Update button safely
+                button.innerHTML = '';
+                const showIcon = document.createElement('i');
+                showIcon.className = 'fas fa-eye';
+                button.appendChild(showIcon);
+                button.appendChild(document.createTextNode(' Show Full Token'));
                 button.style.background = 'var(--accent)';
             }
         }
