@@ -77,8 +77,11 @@ Before starting this tutorial, ensure you have access to the following accounts 
 
 ## Setup Okta Account
 
+**For this Workshop make sure you use the default 'api://default' API Authorization Server**
+**Admin Console -> Security -> API -> Authorization Servers**
+
 ### Create a test user and test group in Okta
-1. Sign into **Okta Admin Console**
+1. Sign into **Okta Admin Console** (https://www.okta.com)
 2. Navigate to **Directory -> People**
 3. Click **Add Person** button
 4. Fill in required fields:
@@ -124,14 +127,10 @@ Before starting this tutorial, ensure you have access to the following accounts 
 ![refresh](/images/okta/refresh.png)
 
 9. Navigate to **LOGIN** and configure the following settings:
-   **Sign-in redirect URIs:**
-   - Add your Auth0 tenant callback URL (e.g., `https://xxxxxxxx.us.auth0.com/login/callback`)
-   **Initiate login URI:**
-   - Enter your Auth0 tenant login URL (e.g., `https://xxxxxxxxx.us.auth0.com/login`)
-   **Login initiated by:**
-   - Select **Either Okta or App**
-   **Login flow:**
-   - Select **Redirect to app to initiate login (OIDC Compliant)**
+   - **Sign-in redirect URIs:**: Add your Auth0 tenant callback URL (e.g., `https://xxxxxxxx.us.auth0.com/login/callback`)
+   - **Initiate login URI:**: Enter your Auth0 tenant login URL (e.g., `https://xxxxxxxxx.us.auth0.com/login`)
+   - **Login initiated by:**: Select **Either Okta or App**
+   - **Login flow:**: Select **Redirect to app to initiate login (OIDC Compliant)**
 11. Click **Save** at the bottom of the page
 
 ![loginurl](/images/okta/loginurl.png)
@@ -149,23 +148,37 @@ Before starting this tutorial, ensure you have access to the following accounts 
 
 ![scopes](/images/okta/scopes.png)
 
+### Copy Okta Application Credentials
+1. Navigate back to the **General** tab of your Okta application
+2. Copy the following values and save them in a notepad as you'll need them for Auth0 configuration:
+   - **Client ID**: Copy the Client ID value
+   - **Client Secret**: Copy the Client Secret value
+
+![secrets](/images/okta/secrets.png)
+
+**Important**: Keep these credentials secure and readily available as you'll use them in the next section to configure the Auth0 OIDC connection.
+
 ## Setup Auth0 Account
 
 ### Create Flask Web Application
 
-1. Log into your GenAI Auth0 tenant, navigate to **Applications** on the left pane.
-2. Click **+Create Application** then provide a name **Bedrock Flask App** and select **Regular Web application** in the create application dialog and click **Create**
+1. Log into your GenAI Auth0 tenant (https://www.auth0.com)
+2. Navigate to **Applications** on the left pane. 
+3. Click **+Create Application** then provide a name **Bedrock Flask App** and select **Regular Web application** in the create application dialog and click **Create**
 
 ![app](/images/auth0/app.png)
 
-3. Under **What technology are you using for your project?** choose **Python** 
-4. Click the **Settings**
-5. Copy and paste the **ClientID**, **Client Secret**, and **Domain value** into a notepad as we will use these values later.
+4. Under **What technology are you using for your project?** choose **Python** 
+5. Click the **Settings**
+6. Copy the following values into a notepad as you will paste these vales in `config/environment.json` under `auth0` in the **Deploy the AWS Infrastructure using CDK** section
+   - **ClientID**
+   - **Client Secret**
+   - **Domain value** 
 
 ![settings](/images/auth0/settings.png)
 
-6. Scroll to the very bottom of the screen to **Advanced Settings** and click the **Grant Types** tab. In here, make sure **Token Exchange** and **CIBA** checkboxes are checked.
-7. Click **Save**
+7. Scroll to the very bottom of the screen to **Advanced Settings** and click the **Grant Types** tab. In here, make sure **Token Exchange** and **CIBA** checkboxes are checked.
+8. Click **Save**
 
 ![grants](/images/auth0/grants.png)
 
@@ -176,45 +189,43 @@ You have successfully created a Flask application in Auth0 with the necessary gr
 2. Under **Custom Connections** click on **OpenID Connect**
 3. Click **Create Connection**
 4. Fill in the connection details:
-   - **Connection name**: Enter a descriptive name (e.g., "Okta-OIDC-Connection")
+   - **Connection name**: Enter a descriptive name (e.g., "Okta-OIDC")
    - **Issuer URL**: Enter your Okta OpenID configuration URL 
-     (e.g., `https://trial-xxxxxxx.okta.com/.well-known/openid-configuration`)
-   - **Client ID**: Paste the Client ID from your Okta application
-   - **Client Secret**: Paste the Client Secret from your Okta application
-   - Enable the **Store Tokens** toggle to store tokens in Auth0's token vault
-5. Select the **Applications** tab in the OIDC connection
-6. Enable the **Enable Token Vault** option.
+     (e.g., `https://xxxxxxxxxx.okta.com/.well-known/openid-configuration`)
+   - **Client ID**: Paste the Client ID from section **Copy Okta Application Credentials**
+   - **Client Secret**: Paste the Client Secret from section **Copy Okta Application Credentials**
+   - Enable the **Enable Token Vault** option.
 
-![enable](/images/auth0/enable.png)
+![openid](/images/auth0/openid.png)
 
-7. Select **Save**
-8. Select the **Login Experience** tab in the OIDC connection
-9. Check the box named **Display connection as a button**
-10. Click **Save**
-11. In your OpenID Connection Under **Settings**, add the following in **Scopes**:
+![tokenv](/images/auth0/tokenv.png)
+
+5. Click **Create**
+6. In your OpenID Connection go to the **Settings** tab 
+7. Under the **General** section, add the following in **Scopes**:
    - **offline_access** (for refresh tokens)
    - **okta.users.read** (for user information access)
-   
+
 ![scope](/images/auth0/scope.png)
 
-13. Click **Save**
+8. Click **Save Changes**
+9. Select the **Login Experience** tab in the OIDC connection
+10. Check the box named **Display connection as a button**
+11. Click **Save**
+   
+![login1](/images/auth0/login.png)
 
-![token](/images/auth0/token.png)
-
-14. Select the **Applications** tab in the OIDC connection
-15. Enable the **Bedrock Flask App** option.
+12. Select the **Applications** tab in the OIDC connection
+13. Enable the **Bedrock Flask App** option.
 
 ![enable](/images/auth0/enable.png)
-
-16. Select the **Login Experience** tab in the OIDC connection
-17. Check the box named **Display connection as a button**
-18. Click **Save**
 
 You have successfully configured the OIDC Okta connection with the necessary scopes and token vault enabled, and linked it to your Bedrock Flask App. This establishes the authentication bridge between Auth0 and Okta for secure user authentication workflows.
 
 ### Enable Guardian App MFA
 
-1. On the left pane navigate to **Security** and click **Multi-Factor Auth**
+1. Navigate to your Auth0 FGA account (https://dashboard.fga.dev/)
+2. On the left pane navigate to **Security** and click **Multi-Factor Auth**
 2. Select **Push Notification using Auth0 Guardian** option
 
 ![mfa](/images/auth0/mfa.png)
@@ -244,20 +255,20 @@ You have successfully configured Auth0 Guardian push notifications with mandator
 
 2. In the model editor, replace the current code with the following
 
-:::code{showCopyAction=true showLineNumbers=true language=java}
+```
 model
- schema 1.1
+  schema 1.1
 
 type user
 
 type group
- relations
-   define member: [user]
+  relations
+    define member: [user]
 
 type okta
- relations
-   define read_okta: [user, group#member]
-:::
+  relations
+    define read_okta: [user, group#member]
+```
 
 3. The preview map should change and look like the below image.
 4. Click **Save** to save the authorization model
@@ -266,11 +277,10 @@ type okta
 
 5. Navigate to the **Tuple Management** dashboard from the main dashboard.
 6. Click **Add Tuple**.
-7. Add a tuple representing that your user can read Okta groups, add following in fields.
-- user: **ADD TEST OKTA USER EMAIL HERE***
+7. Add a tuple representing that your user can read Okta groups, **add the following in fields**
+- user: **ADD TEST OKTA USER EMAIL HERE**
 - Object: okta: groups
 - Relation: read_okta
-
 8. Click **Add Tuple**
 
 ![tuples](/images/fga/tuples.png)
@@ -282,7 +292,12 @@ type okta
 
 ![client](/images/fga/client.png)
 
-13. **Save the client credentials** before clicking **Continue**
+13. Click **Continue**
+14. Copy the following values into a notepad as you will paste these vales in `config/environment.json` under `fga` in the next section
+- FGA_STORE_ID='xxxxxxxxxxxxxx'
+- FGA_MODEL_ID='xxxxxxxxxxxxxxxx'
+- FGA_CLIENT_ID='xxxxxxxxxxxxxxx'
+- FGA_CLIENT_SECRET='xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
 ![creds](/images/fga/creds.png)
 
@@ -290,129 +305,127 @@ You have successfully configured the FGA authorization model with user relations
 
 ## Setup AWS Account
 
-### Deploy the CloudFormation Template
+### Deploy the AWS Infrastructure using CDK
 
-1. Navigate to the AWS CloudFormation console in your AWS account
-   - Or go directly to: https://console.aws.amazon.com/cloudformation/
-2. Click **Create stack** > **With new resources (standard)**
-3. In the **Specify template** section:
-   - Select **Upload a template file**
-   - Click **Choose file**
-   - Navigate to and select the `auth0-bedrock-workshop-cfn.yml` file
-   - Click **Next**
-4. In the **Specify stack details** page:
-   - Enter a **Stack name** (e.g., `auth0-bedrock-workshop`)
-   - Click **Next**
-5. In the **Configure stack options** page: Click **Next**
-6. In the **Review** page:
-   - Scroll to the bottom and check the box acknowledging that AWS CloudFormation might create IAM resources
-   - Click **Create stack**
+1. **Clone the repository and navigate to the CDK directory:**
+   ```bash
+   git clone <repository-url>
+   cd auth0-amazon-bedrock-genai-deployment/cdk
+   ```
 
-This will deploy all AWS resources 5 lambda, agent, dynamodb table, secrets and IAM roles.
+2. **Configure your environment variables:**
+   - Edit `config/environment.json` with your values you copied from your Auth0 Application and FGA Client Credentials
+   ```json
+   {
+     "auth0": {
+       "domain": "your-domain.auth0.com",
+       "clientId": "your_auth0_client_id",
+       "clientSecret": "your_auth0_client_secret",
+       "connectionName": "your_connection_name" //**example: Okta-OIDC**
+     },
+     "fga": {
+       "clientId": "your_fga_client_id",
+       "clientSecret": "your_fga_client_secret",
+       "storeId": "your_fga_store_id",
+       "modelId": "your_fga_model_id"
+     },
+     "okta": {
+       "domain": "https://your-domain.okta.com"
+     }
+   }
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+4. **Configure AWS CLI (if not already done):**
+   ```bash
+   aws configure
+   # Enter your AWS Access Key ID, Secret Access Key, and default region
+   ```
+
+5. **Bootstrap CDK (first time only):**
+   ```bash
+   cdk bootstrap
+   ```
+
+6. **Deploy the stack:**
+   ```bash
+   cdk deploy
+   ```
+   - Review the resources that will be created
+   - Type `y` to confirm deployment
+
+7. **Deployment completion:**
+   - The deployment will take approximately 2-3 minutes
+
+This will deploy all AWS resources: 5 Lambda functions, Bedrock agent, DynamoDB table, Secrets Manager, and IAM roles.
 
 ### Configure Amazon Bedrock Agent
-1. In the left navigation panel, scroll to the **Build** section and click **Agents**
-2. Select the agent named **workshop-agent**
+1. Navigate to the **Amazon Bedrock Console**
+2. In the left navigation panel, scroll to the **Build** section and click **Agents**
+3. Select the agent named **workshop-agent**
 
-![agent](/images/lab3/agent.png)
+![agent](/images/bedrock/agent.png)
 
-3. Click the orange **Edit in Agent Builder** button
-4. Under **Select Model** click the small **pen icon** 
+4. Click the orange **Edit in Agent Builder** button
+5. Under **Select Model** click the small **pen icon** 
 
-![pen](/images/lab3/pen.png)
+![pen](/images/bedrock/pen.png)
 
-5. Under **Categories** select **Amazon**
-6. Under **Models** select **Amazon Nova Pro**
-7. Under **Inference** select **Inference profiles**, then select **US Nova Pro**
-8. Click **Apply**
+6. Under **Categories** select **Amazon**
+7. Under **Models** select **Amazon Nova Pro**
+8. Under **Inference** select **Inference profiles**, then select **US Nova Pro**
+9. Click **Apply**
 
-![profile](/images/lab3/profile.png)
+![profile](/images/bedrock/profile.png)
 
-9. Click the **Additional settings** drop down
-10. Under **User input** select **Enabled** option
+10. Click the **Additional settings** drop down
+11. Under **User input** select **Enabled** option
 
-![user](/images/lab3/user.png)
+![user](/images/bedrock/user.png)
 
-11. Scroll to the top of the screen and click the orange **Save and exit** button.
-12. Under **Prepare the Agent to test the latest changes.** click on the **Prepare** button
-13. Scroll down to the **Alias** section in the Amazon Bedrock Agent Screen.
-14. Select the current Alias and click the **Edit** button.
+12. Scroll to the top of the screen and click the orange **Save and exit** button.
+13. Under **Prepare the Agent to test the latest changes.** click on the **Prepare** button
 
-![alias](/images/lab3/alias.png)
+![prep](/images/bedrock/prep.png)
 
-15. Under **Associate a version** select the **Create a new version and associate it to this alias** option.
-16. Click **Save**
+14. Scroll down to the **Alias** section in the Amazon Bedrock Agent Screen.
+15. Select the current Alias and click the **Edit** button.
 
-![save](/images/lab3/save.png)
+![alias](/images/bedrock/alias.png)
 
-### Configure fga-check-lambda Lambda
-1. In the Lambda console click on the **fga-check-lambda** Lambda
-2. Select the **Configuration** tab
-3. On the lefe pane select **Environment Variables**
-4. Click the **Edit** button
-5. Update the following environment variables with your Auth0 FGA configuration values:
-   - **FGA_AUTHORIZATION_MODEL_ID**: Replace `YOUR_FGA_AUTHORIZATION_MODEL_ID` with your actual FGA authorization model ID
-   - **FGA_CLIENT_ID**: Replace `YOUR_FGA_CLIENT_ID` with your FGA client ID from Auth0
-   - **FGA_CLIENT_SECRET**: Replace `YOUR_FGA_CLIENT_SECRET` with your FGA client secret from Auth0
-   - **FGA_STORE_ID**: Replace `YOUR_FGA_STORE_ID` with your FGA store ID from Auth0
-7. Click the **Save** button to apply your changes
+16. Under **Associate a version** select the **Create a new version and associate it to this alias** option.
+17. Click **Save**
 
-![FGA](/images/lab4/FGA.png)
+![save](/images/bedrock/save.png)
 
-### Configure okta-token-lambda Lambda
-1. In the Lambda console click on the **okta-token-lambda** Lambda
-2. Select the **Configuration** tab
-3. On the lefe pane select **Environment Variables**
-4. Click the **Edit** button
-5. Update the following environment variables with your Auth0 FGA configuration values:
-   - **OKTA_DOMAIN**: Replace `https://youroktadomain.com` with your Okta domain
-6. Click the **Save** button to apply your changes 
+### Copy bedrock-web-app Callback URL
+1. Navigate to the **AWS Lambda Console**
+2. In the Lambda console select the **bedrock-web-app** Lambda
+3. Select the **Configuration** tab
+4. On the lefe pane select **Environment Variables**
+5. Copy the **AUTH0_CALLBACK_URL** value as you will need this later.
+- Example: of what to copy **https://xxxxxxx.execute-api.us-east-1.amazonaws.com/prod/callback**
 
-![token](/images/lab4/token.png)
+![flask](/images/callback/flask.png)
 
-### Configure CIBA Lambda Variables
-1. In the Lambda console select the **ciba-flow-lambda** Lambda
-2. Select the **Configuration** tab
-3. On the lefe pane select **Environment Variables**
-4. Click the **Edit** button
-5. Update the following environment variables with your Auth0 CIBA configuration:
-   - **AUTH0_CLIENT_ID**: Replace `YOUR_CLIENT_ID` with your Auth0 application client ID
-   - **AUTH0_CLIENT_SECRET**: Replace `YOUR_CLIENT_SECRET` with your Auth0 application client secret
-   - **AUTH0_DOMAIN**: Replace `YOUR_AUTH0_DOMAIN` with your Auth0 domain
-6. Click the **Save** button to apply your changes
-
-![ciba](/images/lab4/ciba.png)
-
-### Configure bedrock-web-app Variables
-1. In the Lambda console select the **bedrock-web-app** Lambda
-2. Select the **Configuration** tab
-3. On the lefe pane select **Environment Variables**
-4. Click the **Edit** button
-5. Update the following environment variables with your Auth0 configuration:
-   - **AUTH0_CLIENT_ID**: Replace with your Auth0 application client ID
-   - **AUTH0_CLIENT_SECRET**: Replace with your Auth0 application client secret
-   - **AUTH0_DOMAIN**: Replace with your Auth0 domain
-6. Click the **Save** button to apply your changes
-7. Copy the **AUTH0_CALLBACK_URL** value as you will need this later.
-Example: of what to copy **https://xxxxxxx.execute-api.us-east-1.amazonaws.com/prod/callback**
-
-![flask](/images/lab4/flask.png)
-
-### Configure Auth0 App with API Gateway Callback URLs
+### Configure Auth0 Application with API Gateway Callback URLs
 1. Go back to your **Auth0 Console**
 2. On the left pane click on **Applications**, and select the **Bedrock Flask App**
 
-![flaskapp](/images/lab4/flaskapp.png)
+![flaskapp](/images/callback/flaskapp.png)
 
 3. Click on the **Settings** Tab
 4. Scroll down to **Application URIs** section
 5. Using the link you copied in **Step 4** Paste the link in the following section
-
    - **Allowed Callback URLs**: https://xxxxxx.execute-api.us-east-1.amazonaws.com/prod/callback
    - **Application Login URI**: https://xxxxxxx.execute-api.us-east-1.amazonaws.com/prod/login
    - **Allowed Logout URLs**: https://xxxxxxx.execute-api.us-east-1.amazonaws.com/prod/logout
 
-![url](/images/lab4/url.png)
+![url](/images/callback/url.png)
 
 6. Make sure all 3 URLS match the picture above, except with your actual gateway link at the begining of the URLs.
 7. Click **Save**
@@ -424,18 +437,18 @@ Example: of what to copy **https://xxxxxxx.execute-api.us-east-1.amazonaws.com/p
 2. Navigate to your login **API Gateway URL** from Lab 4 (Example: https://xxxxxxx.execute-api.us-east-1.amazonaws.com/prod/)
 3. At the login screen, select the bottom option that says **Continue with 'Name of Connection'**
 
-![log](/images/lab5/log.png)
+![log](/images/chat/log.png)
 
 4. You will be redirected to an Okta login screen, enter the following credentials
 - Username: Okta User
 - Password: Okta User password
 
-![okta](/images/lab5/okta.png)
+![okta](/images/chat/okta.png)
 
 5. On your mobile device, please download the **Auth0 Guardian** app
 6. Once downloaded, click **Continue**
 
-![select](/images/lab5/select.png)
+![select](/images/chat/select.png)
 
 7. Open the **Auth0 Guardian** App and on the top right click the **+Add** button
 8. Select **Scan QR Code**
@@ -451,30 +464,33 @@ Example: of what to copy **https://xxxxxxx.execute-api.us-east-1.amazonaws.com/p
 4. Click **Save**
 5. On the **Disabling MFA for all applications** screen click the red **Disable** button.
 
-![disable](/images/lab5/disable.png)
+![disable](/images/chat/disable.png)
 
 We're temporarily disabling MFA to focus on testing the FGA authorization and CIBA flows without MFA interference
 
 ### Interacting with the Amazon Bedrock AI Agent
-1. Open a new **Private Browser Window**
+1. Open a **New Private Browser Window**
 2. Navigate to your login **API Gateway URL** from Lab 4 (Example: https://xxxxxxx.execute-api.us-east-1.amazonaws.com/prod/)
 3. You should see a clean chatbot interface with, like the image below
 
-![chatbot](/images/lab5/chatbot.png)
+![chatbot](/images/chat/chatbot.png)
 
 We first want to test the Bedrock Action Group that retrieves Okta group information. This action group connects to an Okta environment to fetch user group memberships. The current user has admin rights and permissions configured through the FGA (Fine-Grained Authorization) console. This demonstrates both the Amazon Bedrock Action Group and the FGA authorization system working together.
 
 4. Ask the chatbot: **What are the Okta groups for user 'youroktauser@mail.com'** (replace with your provided workshop user email)
 
-![group](/images/lab5/group.png)
+![group](/images/chat/group.png)
 
 The Bedrock agent successfully retrieved the user's Okta group memberships by calling the FGA Authorization Lambda function, which validated your permissions, then invoked the Okta Management Lambda function to query the Okta API.
 
 5. Now ask the chatbot: **Reset password for user 'youroktauser@mail.com'** (replace with your provided workshop user email)
 6. You will receive a notifcation on your mobile device from the **Auth0 Guardian** App.
+
+<img src="/images/chat/phone.png" width="300" alt="Auth0 Guardian push notification on mobile device">
+
 7. Open the notification and select **Approve** to approve the CIBA authentication request for the password reset operation.
 
-![ciba](/images/lab5/ciba.png)
+![ciba](/images/chat/ciba.png)
 
 When you requested the password reset, the Bedrock agent triggered the CIBA Authentication Lambda function, which initiated a backchannel authentication request through Auth0. This sent a push notification to your registered Guardian device for verification. By approving the request, you completed the CIBA flow, allowing the sensitive password reset operation to proceed. This demonstrates how CIBA adds an extra security layer for high-risk actions, ensuring that even authenticated users must provide additional verification for sensitive operations
 
@@ -484,7 +500,7 @@ When you requested the password reset, the Bedrock agent triggered the CIBA Auth
 3. Locate the tuple that grants your user permission to read Okta groups (it should show your email, "read_okta" relation, and "okta groups" object) and click the small red trash icon to delete this tuple.
 4. When promted click **Confirm** to delete tuple.
 
-![tuple](/images/lab5/tuple.png)
+![tuple](/images/chat/tuple.png)
 
 By removing this tuple, we've revoked the FGA permission that allowed your user to access Okta group information. This will demonstrate how fine-grained authorization works in real-time
 
@@ -492,22 +508,37 @@ By removing this tuple, we've revoked the FGA permission that allowed your user 
 6. Ask the chatbot the same question as before: **What are the Okta groups for user 'youroktauser@mail.com'** (replace with your provided workshop user email)
 7. This time, you should receive an authorization denied message
 
-![ask](/images/lab5/ask.png)
+![ask](/images/chat/ask.png)
 
 The Bedrock agent attempted to call the FGA Authorization Lambda function to check your permissions, but since we deleted the tuple, the FGA system returned "not authorized." The agent respected this security decision and blocked the request, demonstrating how fine-grained authorization prevents unauthorized access in real-time
 
 ## Workshop Environment Clean-Up
 
 ### AWS Resources Cleanup
-1. To delete all AWS resources created in this workshop:
-   - Navigate to AWS CloudFormation console
-   - Select the stack you deployed (`auth0-bedrock-workshop` or similar name)
-   - Click **Delete** and confirm the deletion
-   - Wait for the stack deletion to complete (typically 5-10 minutes)
 
-2. Verify cleanup:
-   - Check that the CloudFormation stack has been successfully deleted
-   - Confirm Lambda functions, DynamoDB table, and Bedrock agent have been removed
+1. **Navigate to the CDK directory:**
+   ```bash
+   cd auth0-amazon-bedrock-genai-deployment/cdk
+   ```
+
+2. **Destroy the CDK stack:**
+   ```bash
+   cdk destroy
+   ```
+   - Type `y` to confirm deletion when prompted
+   - Wait for the stack deletion to complete (typically 2-3 minutes)
+
+3. **Verify cleanup:**
+   - All AWS resources will be automatically removed by CDK
+   - You can verify in the AWS Console that Lambda functions, DynamoDB table, and Bedrock agent have been removed
+   - The CloudFormation stack created by CDK will also be deleted
+
+4. **Optional: Clean up CDK bootstrap resources (only if no longer needed):**
+   ```bash
+   # Only run this if you won't be using CDK in this account/region anymore
+   # This removes the CDK toolkit stack and S3 bucket
+   aws cloudformation delete-stack --stack-name CDKToolkit
+   ```
 
 ### Auth0 Resources
 1. Optional: Delete the Auth0 application
