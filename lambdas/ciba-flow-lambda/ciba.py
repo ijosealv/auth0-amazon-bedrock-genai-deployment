@@ -83,14 +83,26 @@ def poll_for_token(token_url: str, auth_req_id: str, expires_in: int, interval: 
 
             # Handle authorization still pending (continue polling)
             if error == 'authorization_pending':
+                # Check if we have enough time left for another polling cycle
+                if time.time() - start_time + interval > expires_in:
+                    logger.warning("Not enough time remaining for another polling cycle")
+                    return None
+                    
                 logger.info('Authorization pending. Retrying in %d seconds...', interval)
+                # Required sleep for CIBA polling - prevents overwhelming Auth0 servers
                 time.sleep(interval)
                 continue
 
             # Handle rate limiting (slow down polling)
             if error == 'slow_down':
+                # Check if we have enough time left for the increased interval
+                if time.time() - start_time + interval + 5 > expires_in:
+                    logger.warning("Not enough time remaining for rate-limited polling cycle")
+                    return None
+                    
                 logger.info('Rate limited. Increasing polling interval by 5 seconds.')
                 interval += 5  # Increase interval to avoid rate limiting
+                # Required sleep for CIBA rate limiting - prevents further rate limit violations
                 time.sleep(interval)
                 continue
 
