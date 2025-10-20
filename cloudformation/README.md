@@ -166,7 +166,7 @@ Before starting this tutorial, ensure you have access to the following accounts 
 
 4. Under **What technology are you using for your project?** choose **Python** 
 5. Click the **Settings**
-6. Copy the following values into a notepad as you will paste these vales in `config/environment.json` under `auth0` in the **Deploy the AWS Infrastructure using CDK** section
+6. Copy the following values into a notepad as you will paste these vales inside Lambda environment variables.
    - **ClientID**
    - **Client Secret**
    - **Domain value** 
@@ -289,7 +289,7 @@ type okta
 ![client](/images/fga/client.png)
 
 13. Click **Continue**
-14. Copy the following values into a notepad as you will paste these vales in `config/environment.json` under `fga` in the next section
+14. Copy the following values into a notepad as you will paste these vales inside lambda environment variables
 - FGA_STORE_ID='xxxxxxxxxxxxxx'
 - FGA_MODEL_ID='xxxxxxxxxxxxxxxx'
 - FGA_CLIENT_ID='xxxxxxxxxxxxxxx'
@@ -370,42 +370,17 @@ After the CloudFormation stack deploys successfully, you'll need to prepare and 
 
 **For each Lambda function, you'll need to:**
 
-1. **Navigate to the lambda function directory** (e.g., `/lambdas/ciba-flow-lambda/`)
-2. **Install dependencies using Amazon Linux with Python 3.12:**
-   ```bash
-   # Create a virtual environment (recommended)
-   python3.12 -m venv lambda-env
-   source lambda-env/bin/activate
-   
-   # Install dependencies
-   pip install -r requirements.txt -t .
-   
-   # Create deployment package
-   zip -r ciba-flow-lambda.zip . -x "lambda-env/*" "*.pyc" "__pycache__/*"
-   ```
-   
-   **Note:** Ensure you're using **Amazon Linux with Python 3.12** to match the Lambda runtime environment. This ensures compatibility with the deployed Lambda functions.
-
-3. **Alternative: Use Docker for consistent builds:**
-   ```bash
-   # From the lambda function directory
-   docker run --rm -v "$PWD":/var/task public.ecr.aws/lambda/python:3.12 /bin/bash -c "pip install -r requirements.txt -t . && zip -r ciba-flow-lambda.zip . -x '*.pyc' '__pycache__/*'"
-   ```
-
-#### Upload to AWS Lambda
-
-**For each Lambda function below:**
 1. Go to **AWS Lambda Console**
 2. Select the Lambda function
 3. Scroll down to the **Code** section
 4. Click **Upload from** → **.zip file**
-5. Choose the corresponding zip file you created above
+5. Choose the corresponding zip file from the `/assets` folder
 
-**Lambda Functions and their directories:**
-- **ciba-flow-lambda** ← `/lambdas/ciba-flow-lambda/`
-- **bedrock-web-app** ← `/lambdas/bedrock-web-app/`
-- **fga-check-lambda** ← `/lambdas/fga-check-lambda/`
-- **okta-token-lambda** ← `/lambdas/okta-token-lambda/`
+**Lambda Functions and their zip files:**
+- **ciba-flow-lambda** ← `ciba-flow-lambda.zip`
+- **bedrock-web-app** ← `bedrock-web-app.zip` 
+- **fga-check-lambda** ← `fga-check-lambda.zip`
+- **okta-token-lambda** ← `okta-token-lambda.zip`
 
 ### Configure fga-check-lambda Lambda
 1. In the Lambda console click on the **fga-check-lambda** Lambda
